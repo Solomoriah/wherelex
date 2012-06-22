@@ -1,0 +1,33 @@
+wherelex.py
+===========
+
+``outexpr, values = wherelex.interpreter(inexpr)``
+
+Analyzes a "where clause" expression with a syntax similar to MySQL, but
+simplified.  Includes support for two-letter logical operators such as "gt"
+for greater than, in support of "mental compatibility" with the old filePro
+16 system.
+
+wherelex.interpreter() only allows identifiers, operators, strings, and
+numbers; any identifier found is back-tick quoted in the output to prevent
+MySQL from interpreting it as a reserved word.  Function calls are
+obviously out of the question with this version.  Strings may be quoted
+with ", ', or |, and the only way to get a quote into a field is to quote
+it with a different quote character.  Note that the pipe | is allowed as a
+quote character to ease the process of automatic quoting, i.e. from a query
+builder; the pipe was chosen as it rarely appears in input text.
+
+This is not a full parser, just a lexical analyzer and translator.  Thus,
+it is entirely possible that an expression that passes without error will
+still not execute properly in MySQL.  However, the translated expression
+should not allow any sql injection attacks to be performed.
+
+Usage:
+    ``outexpr, values = wherelex.interpreter(inexpr)``
+
+**inexpr** is the expression provided by the user
+
+**outexpr** is the sanitized MySQL expression
+
+**values** is the list of strings and numbers found in inexpr, ready to be
+provided as the second argument to cursor.execute()
