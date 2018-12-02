@@ -70,7 +70,7 @@ logical = {
     "null": None,
 }
 textops = {
-    "eq":   "<=>",
+    "eq":   "=",
     "ne":   "!=",
     "lt":   "<",
     "le":   "<=",
@@ -84,7 +84,7 @@ class AnalyzerError(Exception):
     pass
 
 
-def interpreter(s):
+def interpreter(s, prefix = None):
     s = s.strip()
     expr = []
     values = []
@@ -102,8 +102,7 @@ def interpreter(s):
                     s = s[i+1:]
                     break
             if not fnd:
-                msg = "Mismatched quote near '%s'" % s[:20]
-                raise AnalyzerError(msg)
+                raise AnalyzerError("Mismatched quote near '%s'" % s[:20])
         elif s[0] in operators:
             if s[1:2] and s[1:2] in operators and s[0:2] in twinops:
                 expr.append(s[0:2])
@@ -118,34 +117,27 @@ def interpreter(s):
             for i in range(len(s)):
                 if not identifier.match(s[i]):
                     break
-            if i >= len(s):
-                v = s
-                s = ''
-            else:
-                v = s[:i]
-                s = s[i:]
+            v = s[:i]
+            s = s[i:]
             v = v.lower()
             if v in logical:
                 expr.append(v)
             elif v in textops:
                 expr.append(textops[v])
+            elif prefix:
+                expr.append("%s.`%s`" % (prefix, v))
             else:
                 expr.append("`%s`" % v)
         elif numeric.match(s[0]) or s[0] == ".":
             for i in range(len(s)):
                 if not numeric.match(s[i]) and s[i] != '.':
                     break
-            if i == len(s):
-                v = s
-                s = ''
-            else:
-                v = s[:i]
-                s = s[i:]
+            v = s[:i]
+            s = s[i:]
             values.append(v)
             expr.append("%s")
         else:
-            msg = "Syntax error near '%s'" % s[:20]
-            raise AnalyzerError(msg)
+            raise AnalyzerError("Syntax error near '%s'" % s[:20])
         s = s.strip()
                    
     return " ".join(expr), values
